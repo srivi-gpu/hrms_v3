@@ -684,10 +684,9 @@
 
     var all = store.collection('leaveRequests');
     var pending = all.filter(function (l) { return l.status === 'Pending Approval'; });
-    var rows = tabSt[0] === 'pending' ? pending
-      : tabSt[0] === 'approved' ? all.filter(function (l) { return l.status === 'Approved'; })
-        : tabSt[0] === 'rejected' ? all.filter(function (l) { return l.status === 'Rejected' || l.status === 'Cancelled'; })
-          : all;
+    /* Status is a filter beside type and department, not a row of tabs: the empty value is All. */
+    var STATUS = { pending: 'Pending Approval', approved: 'Approved', rejected: 'Rejected', cancelled: 'Cancelled' };
+    var rows = tabSt[0] ? all.filter(function (l) { return l.status === STATUS[tabSt[0]]; }) : all;
     if (typeSt[0]) rows = rows.filter(function (l) { return l.type === typeSt[0]; });
     if (deptSt[0]) rows = rows.filter(function (l) { var e = emp(l.employee); return e && e.department === deptSt[0]; });
 
@@ -729,16 +728,6 @@
     ];
 
     return h(React.Fragment, null,
-      h(V.TabGroup, {
-        value: tabSt[0], onChange: tabSt[1],
-        items: [
-          { value: 'pending', label: 'Pending', count: pending.length },
-          { value: 'approved', label: 'Approved', count: all.filter(function (l) { return l.status === 'Approved'; }).length },
-          { value: 'rejected', label: 'Rejected & cancelled', count: all.filter(function (l) { return l.status === 'Rejected' || l.status === 'Cancelled'; }).length },
-          { value: 'all', label: 'All', count: all.length }
-        ]
-      }),
-
       h(Card, {
         title: 'Leave requests',
         description: 'Approving updates the balance, the attendance calendar and payroll inputs, as PRD 5.1 requires.'
@@ -748,6 +737,9 @@
           search: function (l) { return [l.id, empName(l.employee), typeName(l.type), l.reason, l.status].join(' '); },
           searchPlaceholder: 'Search by request, employee or type',
           filters: h(React.Fragment, null,
+            h(ui.Filter, { label: 'Status', value: tabSt[0], onChange: tabSt[1], options: Object.keys(STATUS).map(function (k) {
+              return { value: k, label: k.charAt(0).toUpperCase() + k.slice(1) + ' (' + all.filter(function (l) { return l.status === STATUS[k]; }).length + ')' };
+            }) }),
             h(ui.Filter, { label: 'Leave type', value: typeSt[0], onChange: typeSt[1], options: leaveTypeOptions() }),
             h(ui.Filter, { label: 'Department', value: deptSt[0], onChange: deptSt[1], options: deptOptions() })),
           columns: columns,
@@ -755,7 +747,7 @@
           emptyTitle: tabSt[0] === 'pending' ? 'Nothing waiting for a decision' : 'No requests match this view',
           emptyBody: tabSt[0] === 'pending'
             ? 'Every leave request has been actioned.'
-            : 'Adjust the filters, or choose another tab.'
+            : 'Adjust the filters.'
         })),
 
       /* PRD 4.13: a rejection needs a reason, and the requester sees it. */
