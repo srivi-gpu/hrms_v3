@@ -397,7 +397,6 @@
   var PLAN = [
     { label: 'Overview', slots: [
       { label: 'Dashboard', icon: 'home', path: 'dashboard' },
-      { label: 'Search', icon: 'search', path: 'search' },
       { label: 'Approval inbox', icon: 'checklist', path: 'approvals' }
     ]},
     { label: 'People', slots: [
@@ -443,8 +442,10 @@
      person their own record and preferences in the profile menu, so an employee's
      `me/profile` does not also need a rail row — and it could not honestly take the
      Employees slot, which is a roster everywhere else. The routes stay; only the row
-     goes. Listed here so the orphan check below still means something. */
-  var OFF_PLAN = { 'me/profile': true };
+     goes. Listed here so the orphan check below still means something.
+     Search is the same: the top bar's search and Ctrl K open it, and "See all results"
+     lands on the screen, so it needs no rail row. */
+  var OFF_PLAN = { 'me/profile': true, 'admin/search': true, 'hr/search': true, 'me/search': true };
 
   /* A role's sidebar: the plan, carrying that role's items. The slot owns the label
      and the icon so the structure reads the same everywhere; the item keeps everything

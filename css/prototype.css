@@ -171,27 +171,44 @@
 /* ---------- Role banner shown on the dashboards ---------- */
 .rolebar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); }
 
-/* ---------- Command palette (Ctrl/Cmd K) ---------- */
-.palette { width: min(640px, 100%); padding: 12px; gap: 6px; }
-.palette__field { padding: 2px 2px 6px; }
-.palette__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 46vh; overflow-y: auto; }
-.palette__item {
-  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px;
-  border: 0; background: none; border-radius: var(--tl-radius-control); color: var(--text-primary); font: inherit; cursor: pointer;
-}
-.palette__item.is-on { background: var(--brand-soft); color: var(--text-brand); }
-.palette__icon { display: flex; color: var(--text-secondary); flex: none; }
-.palette__item.is-on .palette__icon { color: var(--text-brand); }
-.palette__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.palette__label { font-size: 14px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.palette__context { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.palette__item.is-on .palette__context { color: var(--text-brand); opacity: .75; }
-.palette__path { font-size: 11px; color: var(--text-muted); flex: none; white-space: nowrap; }
-@media (max-width: 620px) { .palette__path { display: none; } }
-.palette__foot {
-  display: flex; justify-content: space-between; gap: 12px; padding: 10px 10px 4px;
-  border-top: 1px solid var(--border-subtle); font-size: 11px;
-}
+/* ---------- Global search spotlight (Ctrl/Cmd K) ----------
+   Same pattern as Tracklivo's: a pill-bound input, grouped results on icon tiles, the active
+   row marked with a chevron, and the key hints in a quiet footer. */
+.spot__scrim { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: center; align-items: flex-start;
+  padding: 12vh 16px 16px; background: color-mix(in srgb, var(--bg-overlay) 36%, transparent); }
+.spot { width: min(640px, 100%); max-height: 72vh; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 20px; box-shadow: 0 24px 64px rgba(15, 12, 40, .22); }
+.spot__in { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border-subtle); }
+.spot__i { display: inline-flex; color: var(--text-secondary); }
+.spot__i svg { width: 20px; height: 20px; }
+.spot__q { all: unset; flex: 1 1 auto; min-width: 0; font-size: 16px; color: var(--text-primary); }
+.spot__q::placeholder { color: var(--text-secondary); }
+.spot__k, .spot__f kbd { display: inline-block; min-width: 18px; padding: 2px 7px; border: 1px solid var(--border-subtle); border-radius: 6px;
+  font: 500 11px/1.4 var(--font-sans); color: var(--text-secondary); background: var(--bg-surface); text-align: center; }
+.spot__f kbd { margin-right: 3px; padding: 1px 5px; }
+.spot__b { flex: 1 1 auto; overflow-y: auto; padding: 8px; min-height: 0; }
+.spot__g { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; }
+.spot__gt { padding: 6px 10px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); }
+.spot__r { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 12px; }
+.spot__r[disabled] { opacity: .55; cursor: default; }
+.spot__r.is-on, .spot__r:not([disabled]):hover { background: var(--brand-softer, var(--brand-soft)); }
+.spot__r:focus-visible { outline: 2px solid var(--brand-solid); outline-offset: -2px; }
+.spot__ri { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex: none; border-radius: 9px;
+  background: var(--bg-subtle); color: var(--text-secondary); }
+.spot__ri svg { width: 16px; height: 16px; }
+.spot__r.is-on .spot__ri { background: var(--brand-soft); color: var(--text-brand); }
+.spot__ri--ara { background: var(--brand-solid); color: var(--brand-on-solid); }
+.spot__r.is-on .spot__ri--ara { background: var(--brand-solid); color: var(--brand-on-solid); }
+.spot__rt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.spot__rt strong { font-size: 14px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spot__rt span { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spot__go { display: inline-flex; opacity: 0; color: var(--text-brand); }
+.spot__go svg { width: 16px; height: 16px; }
+.spot__r.is-on .spot__go { opacity: 1; }
+.spot__f { display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-top: 1px solid var(--border-subtle);
+  background: var(--bg-subtle); font-size: 12px; color: var(--text-secondary); }
+.spot__sp { flex: 1; }
+@media (max-width: 560px) { .spot__scrim { padding-top: 8vh; } }
 
 /* ---------- Bulleted lists inside cards ---------- */
 .bullets { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-secondary); }

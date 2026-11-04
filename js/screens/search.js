@@ -450,76 +450,112 @@
       router.go(role + '/search' + (q ? '?q=' + encodeURIComponent(q) : ''));
     }
 
+    var ROLE_GOTO = {
+      key: 'goto', label: 'Go to', icon: 'right',
+      row: function (it) { return { title: it.label, sub: it.group || 'Page' }; },
+      route: function (it) { return role + '/' + it.path; }
+    };
+    var gotoRows = React.useMemo(function () {
+      var out = [];
+      HRMS.nav.role(role).groups.forEach(function (g) {
+        g.items.forEach(function (it) {
+          if (it.href) return;
+          out.push({ group: { src: ROLE_GOTO }, rec: { label: it.label, path: it.path, group: g.label, icon: it.icon } });
+        });
+      });
+      return out;
+    }, [role]);
+
+    /* Nothing typed yet: offer the places this workspace opens, as Tracklivo's spotlight does. */
+    var shownRows = q ? rows : gotoRows.slice(0, 6);
+
+    var list = [];
+    shownRows.forEach(function (row, i) {
+      var last = list[list.length - 1];
+      var label = q ? row.group.src.label : 'Go to';
+      if (!last || last.label !== label) { last = { label: label, items: [] }; list.push(last); }
+      last.items.push({ row: row, i: i });
+    });
+
     function onKey(e) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); selSt[1](Math.min(selSt[0] + 1, rows.length - 1)); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); selSt[1](Math.min(selSt[0] + 1, shownRows.length - 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); selSt[1](Math.max(selSt[0] - 1, 0)); }
       else if (e.key === 'Enter') {
         e.preventDefault();
-        if (isQuestion(q)) ask(); else if (rows.length) open(rows[selSt[0]]); else if (q) seeAll();
+        if (isQuestion(q)) ask(); else if (shownRows.length) open(shownRows[selSt[0]]); else if (q) seeAll();
       } else if (e.key === 'Escape') { e.preventDefault(); p.onClose(); }
     }
 
-    return h('div', { className: 'modal__scrim', onMouseDown: function (e) { if (e.target === e.currentTarget) p.onClose(); } },
-      h('div', { className: 'modal palette', role: 'dialog', 'aria-label': 'Search', onKeyDown: onKey },
-        h('div', { className: 'palette__field', ref: boxRef },
-          h(V.SearchField, {
-            placeholder: 'Search people, requests, documents, screens — or ask Ara',
-            value: qSt[0], 'aria-label': 'Search everything',
-            onChange: function (e) { qSt[1](e.target.value); }
-          })),
+    return h('div', { className: 'spot__scrim', onMouseDown: function (e) { if (e.target === e.currentTarget) p.onClose(); } },
+      h('div', { className: 'spot', role: 'dialog', 'aria-label': 'Search', 'aria-modal': 'true', onKeyDown: onKey },
+        h('div', { className: 'spot__in', ref: boxRef },
+          h('span', { className: 'spot__i' }, I.search),
+          h('input', {
+            className: 'spot__q', type: 'text', autoComplete: 'off', spellCheck: false, value: qSt[0],
+            placeholder: 'Search people, requests, documents and screens, or ask Ara',
+            'aria-label': 'Search everything', onChange: function (e) { qSt[1](e.target.value); }
+          }),
+          h('kbd', { className: 'spot__k' }, 'Esc')),
 
-        busySt[0] ? h('div', { className: 'palette__ara' }, h(Ara, { size: 'md' }),
-          h('span', { className: 'palette__ara__b' }, h('span', { className: 'shimmer', style: { display: 'block', height: 11, width: '60%' } }))) : null,
+        h('div', { className: 'spot__b' },
+          busySt[0] ? h('div', { className: 'palette__ara' }, h(Ara, { size: 'md' }),
+            h('span', { className: 'palette__ara__b' }, h('span', { className: 'shimmer', style: { display: 'block', height: 11, width: '60%' } }))) : null,
 
-        ansSt[0] ? h('div', { className: 'palette__ara' }, h(Ara, { size: 'md' }),
-          h('span', { className: 'palette__ara__b' },
-            h('p', null, ansSt[0].p),
-            ansSt[0].l.length ? h('ul', null, ansSt[0].l.map(function (x, i) { return h('li', { key: i }, x); })) : null,
-            ansSt[0].s ? h('small', null, ansSt[0].s) : null)) : null,
+          ansSt[0] ? h('div', { className: 'palette__ara' }, h(Ara, { size: 'md' }),
+            h('span', { className: 'palette__ara__b' },
+              h('p', null, ansSt[0].p),
+              ansSt[0].l.length ? h('ul', null, ansSt[0].l.map(function (x, i) { return h('li', { key: i }, x); })) : null,
+              ansSt[0].s ? h('small', null, ansSt[0].s) : null)) : null,
 
-        q && isQuestion(q) && !ansSt[0] && !busySt[0]
-          ? h('button', { type: 'button', className: 'palette__askrow', onClick: ask },
-              h('span', { className: 'palette__icon' }, ARA_GLYPH),
-              h('span', { className: 'palette__text' },
-                h('span', { className: 'palette__label' }, 'Ask Ara — “' + q + '”'),
-                h('span', { className: 'palette__context' }, 'Answers from this prototype only')),
-              h('span', { className: 'palette__path mono' }, 'Enter'))
-          : null,
-
-        rows.length
-          ? h('ul', { className: 'palette__list' }, rows.map(function (row, i) {
-              var r = row.group.src.row(row.rec);
-              return h('li', { key: row.group.src.key + i },
-                h('button', {
-                  type: 'button', className: 'palette__item' + (i === selSt[0] ? ' is-on' : ''),
-                  onMouseEnter: function () { selSt[1](i); },
-                  onClick: function () { open(row); }
+          list.map(function (g) {
+            return h('div', { key: g.label, className: 'spot__g' },
+              h('span', { className: 'spot__gt' }, g.label),
+              g.items.map(function (x) {
+                var r = x.row.group.src.row(x.row.rec);
+                var icon = x.row.group.src.key === 'goto' ? (I[x.row.rec.icon] || I.right) : (I[x.row.group.src.icon] || I.right);
+                return h('button', {
+                  key: x.row.group.src.key + x.i, type: 'button',
+                  className: 'spot__r' + (x.i === selSt[0] ? ' is-on' : ''),
+                  onMouseEnter: function () { selSt[1](x.i); }, onClick: function () { open(x.row); }
                 },
-                  r.avatar ? h(V.Avatar, { name: r.avatar, size: 'xs' })
-                    : h('span', { className: 'palette__icon' }, I[row.group.src.icon] || I.right),
-                  h('span', { className: 'palette__text' },
-                    h('span', { className: 'palette__label' }, r.title),
-                    h('span', { className: 'palette__context' }, r.sub || row.group.src.label)),
-                  h('span', { className: 'palette__path mono' }, r.mono || row.group.src.label)));
-            }))
-          : (q && !ansSt[0] && !busySt[0]
-              ? h('div', { style: { padding: '8px 0 16px' } },
-                  h(ui.Empty, { icon: I.search, title: 'Nothing matches “' + q + '”',
-                    body: 'Search only covers what this workspace may view.' }))
-              : null),
+                  r.avatar ? h(V.Avatar, { name: r.avatar, size: 'xs' }) : h('span', { className: 'spot__ri' }, icon),
+                  h('span', { className: 'spot__rt' },
+                    h('strong', null, r.title),
+                    h('span', null, r.sub || x.row.group.src.label)),
+                  h('span', { className: 'spot__go' }, I.right));
+              }));
+          }),
 
-        q && total > rows.length
-          ? h('button', { type: 'button', className: 'palette__askrow', onClick: seeAll },
-              h('span', { className: 'palette__icon' }, I.search),
-              h('span', { className: 'palette__text' },
-                h('span', { className: 'palette__label' }, 'See all ' + total + ' results'),
-                h('span', { className: 'palette__context' }, 'Opens Search, where the filters are')),
-              h('span', { className: 'palette__path mono' }, '#/' + role + '/search'))
-          : null,
+          q && !shownRows.length && !ansSt[0] && !busySt[0]
+            ? h('div', { style: { padding: '8px 0 16px' } },
+                h(ui.Empty, { icon: I.search, title: 'Nothing matches “' + q + '”',
+                  body: 'Search only covers what this workspace may view.' }))
+            : null,
 
-        h('div', { className: 'palette__foot muted' },
-          h('span', null, q ? total + ' result' + (total === 1 ? '' : 's') : HRMS.nav.count + ' screens'),
-          h('span', null, 'Enter to open · ask a question for Ara · Esc to close'))));
+          q && total > rows.length
+            ? h('div', { className: 'spot__g' },
+                h('button', { type: 'button', className: 'spot__r', onClick: seeAll },
+                  h('span', { className: 'spot__ri' }, I.search),
+                  h('span', { className: 'spot__rt' },
+                    h('strong', null, 'See all ' + total + ' results'),
+                    h('span', null, 'Opens Search, where the filters are')),
+                  h('span', { className: 'spot__go' }, I.right)))
+            : null,
+
+          h('div', { className: 'spot__g' },
+            h('span', { className: 'spot__gt' }, 'Ask Ara'),
+            h('button', { type: 'button', className: 'spot__r', onClick: ask, disabled: !q },
+              h('span', { className: 'spot__ri spot__ri--ara' }, ARA_GLYPH),
+              h('span', { className: 'spot__rt' },
+                h('strong', null, q ? '“' + q + '”' : 'Ask Ara a question'),
+                h('span', null, 'Answers from this prototype’s people, requests and records')),
+              h('span', { className: 'spot__go' }, I.right)))),
+
+        h('div', { className: 'spot__f' },
+          h('span', null, h('kbd', null, '↑'), h('kbd', null, '↓'), ' to move'),
+          h('span', null, h('kbd', null, '↵'), ' to open'),
+          h('span', { className: 'spot__sp' }),
+          h('span', null, q ? total + ' result' + (total === 1 ? '' : 's') : HRMS.nav.count + ' screens'))));
   }
 
   HRMS.screens.register({
