@@ -195,14 +195,15 @@
     });
     var currentMaster = item.tabs.filter(function (t) { return t.group === activeTab.group; })[0].path;
 
+    /* One row: the tabs of the current half on the left, the Attendance | Leave switch on the right. */
     return h('div', { className: 'mtabs' },
-      /* The two halves read as a segmented switch, not as another row of tabs. */
-      h('div', { className: 'mtabs__switch' }, h(V.SegmentedControl, {
-        'aria-label': item.label, value: currentMaster,
-        items: masters.map(function (m) { return { value: m.path, label: m.label }; }),
-        onChange: function (v) { go(masters.filter(function (m) { return m.path === v; })[0]); }
-      })),
-      row(inGroup, 'underline', active, activeTab.group));
+      h('div', { className: 'mtabs__row' },
+        h('div', { className: 'mtabs__tabs' }, row(inGroup, 'underline', active, activeTab.group)),
+        h('div', { className: 'mtabs__switch' }, h(V.SegmentedControl, {
+          'aria-label': item.label, value: currentMaster,
+          items: masters.map(function (m) { return { value: m.path, label: m.label }; }),
+          onChange: function (v) { go(masters.filter(function (m) { return m.path === v; })[0]); }
+        }))));
   }
 
   /* ---------- Toasts: app-level, so an action can report from anywhere ---------- */
