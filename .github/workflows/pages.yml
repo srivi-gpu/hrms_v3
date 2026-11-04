@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/happy-ramanujan-nydzj0]
+    branches: [main]
   workflow_dispatch:
 
 # Needed so the workflow can enable Pages and publish to it.
