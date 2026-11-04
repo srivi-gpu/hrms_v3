@@ -634,26 +634,160 @@
         ]})));
   }
 
-  /* ========================================================= Integrations */
-  function integrationsScreen(category, title, description) {
-    return function () {
-      var rows = store.collection('integrations').filter(function (x) { return !category || x.category === category; });
-      return h(Card, { title: title, description: description },
-        rows.length
-          ? h('div', { className: 'list' }, rows.map(function (x) {
-              return h('div', { className: 'list__row', key: x.id },
-                h('span', { className: 'empty__mark', style: { width: 34, height: 34 } }, I.plug),
-                h('div', { className: 'list__main' },
-                  h('span', { className: 'list__title' }, x.name),
-                  h('span', { className: 'list__meta' }, x.detail)),
-                h(ui.StatusChip, { status: x.status }),
-                h(V.Button, {
-                  variant: x.status === 'Connected' ? 'outline' : 'primary', className: 'vi-btn--sm',
-                  onClick: function () { ui.toast((x.status === 'Connected' ? 'Managing ' : 'Connecting ') + x.name + ' is out of scope for the prototype', 'info'); }
-                }, x.status === 'Connected' ? 'Manage' : 'Connect'));
-            }))
-          : h(ui.Empty, { icon: I.plug, title: 'Nothing configured here yet' }));
-    };
+  /* ========================================================= Integrations
+
+     One page, grouped into sections, replacing the six tabs this module used to carry.
+     The tabs split the providers by subject — email, calendar, SSO, third-party, API,
+     webhooks — which meant that "what is connected, and is any of it broken" took six
+     clicks and was never answerable in one look. Sections put the same grouping on a
+     single page, so the whole picture reads at once and a section is a heading rather
+     than a destination.
+
+     The cards are the design system's integration card (.icards/.icard), so this module
+     looks like the rest of the admin console rather than a list of rows.
+
+     A card opens its own configuration form. The fields come from the seed record, so
+     adding a provider is a data change and this screen does not grow a branch for it. */
+
+  function lastSyncLabel(x) {
+    if (!x.lastSync) return null;
+    return 'Last sync ' + ui.relTime(x.lastSync);
+  }
+
+  /* The configuration form a card opens. Fields are declared in the seed record. */
+  function IntegrationForm(p) {
+    var x = p.integration;
+    var init = {};
+    x.fields.forEach(function (f) { init[f.id] = f.value; });
+    var valSt = React.useState(init);
+
+    function set(id, v) {
+      var next = {};
+      Object.keys(valSt[0]).forEach(function (k) { next[k] = valSt[0][k]; });
+      next[id] = v;
+      valSt[1](next);
+    }
+
+    function save() {
+      store.log('updated the ' + x.name + ' integration', 'Configuration');
+      ui.toast(x.name + ' settings saved', 'success');
+      p.onClose();
+    }
+
+    return h(ui.Modal, {
+      title: x.name + ' settings',
+      onClose: p.onClose,
+      footer: h(React.Fragment, null,
+        h(V.Button, { variant: 'outline', onClick: p.onClose }, 'Cancel'),
+        h(V.Button, { variant: 'primary', iconStart: I.check, onClick: save }, 'Save settings'))
+    },
+      h('p', { className: 'muted', style: { fontSize: 13, lineHeight: 1.55, marginTop: 0 } }, x.summary),
+      x.fields.map(function (f) {
+        var v = valSt[0][f.id];
+        if (f.kind === 'switch') {
+          return h('div', { className: 'checks__row', key: f.id },
+            h(V.Switch, {
+              checked: !!v, 'aria-label': f.label,
+              onChange: function (e) { set(f.id, e.target.checked); }
+            }),
+            h('div', { className: 'checks__main' },
+              h('span', { className: 'checks__name' }, f.label),
+              f.hint ? h('span', { className: 'checks__meta' }, f.hint) : null));
+        }
+        if (f.kind === 'select') {
+          return h(V.Select, {
+            key: f.id, label: f.label, value: v, options: f.options, hint: f.hint,
+            onChange: function (nv) { set(f.id, nv); }
+          });
+        }
+        return h(V.TextField, {
+          key: f.id, label: f.label, value: v, hint: f.hint,
+          onChange: function (e) { set(f.id, e.target.value); }
+        });
+      }));
+  }
+
+  /* One provider, as the design system's integration card. */
+  function IntegrationCard(p) {
+    var x = p.integration;
+    var connected = x.status === 'Connected';
+    var sync = lastSyncLabel(x);
+
+    return h('div', { className: 'icard' },
+      h('div', { className: 'icard__h' },
+        h('span', {
+          className: 'icard__logo',
+          style: { background: x.logo.bg, color: x.logo.fg }
+        }, x.logo.text),
+        h('span', { style: { minWidth: 0 } },
+          h('strong', null, x.name),
+          h('span', null, x.detail)),
+        h('span', { style: { marginLeft: 'auto', flex: 'none' } },
+          h(ui.StatusChip, { status: x.status }))),
+
+      h('p', null, x.summary),
+
+      h('div', { className: 'row gap-2 wrap' }, x.capabilities.map(function (c) {
+        return h(V.Chip, { key: c, size: 'sm', shape: 'tag' }, c);
+      })),
+
+      /* The sync line sits on its own row rather than in the footer: squeezed in beside
+         two buttons on a 290px card it wrapped one word per line. */
+      sync ? h('span', { className: 'muted', style: { fontSize: 12 } }, sync) : null,
+
+      h('div', { className: 'icard__f' },
+        h(V.Button, {
+          variant: connected ? 'outline' : 'primary', className: 'vi-btn--sm',
+          iconStart: connected ? I.sliders : I.plug,
+          onClick: function () { p.onConfigure(x); }
+        }, connected ? 'Configure' : 'Connect'),
+        connected ? h(V.Button, {
+          variant: 'ghost', className: 'vi-btn--sm',
+          onClick: function () {
+            store.log('ran a test for the ' + x.name + ' integration', 'Configuration');
+            ui.toast(x.name + ' test connection succeeded', 'success');
+          }
+        }, 'Test connection') : null));
+  }
+
+  function Integrations() {
+    var cfgSt = React.useState(null);
+    var rows = store.collection('integrations');
+
+    /* Sections come from the data and keep its order, so a new provider in a new
+       section appears without this screen being told about it. */
+    var sections = [];
+    rows.forEach(function (x) {
+      var at = null;
+      sections.forEach(function (s) { if (s.name === x.section) at = s; });
+      if (!at) { at = { name: x.section, items: [] }; sections.push(at); }
+      at.items.push(x);
+    });
+
+    var connected = rows.filter(function (x) { return x.status === 'Connected'; }).length;
+
+    return h(React.Fragment, null,
+      h(PageHead, {
+        eyebrow: 'Integrations', title: 'Connected services',
+        description: connected + ' of ' + rows.length + ' connected. Each card opens its own settings.'
+      }),
+
+      sections.map(function (s) {
+        return h(ui.FormSection, { key: s.name, title: s.name },
+          h('div', { className: 'icards' }, s.items.map(function (x) {
+            return h(IntegrationCard, {
+              key: x.id, integration: x,
+              onConfigure: function (it) { cfgSt[1](it); }
+            });
+          })));
+      }),
+
+      rows.length ? null : h(ui.Empty, { icon: I.plug, title: 'No integrations available yet' }),
+
+      cfgSt[0] ? h(IntegrationForm, {
+        integration: cfgSt[0],
+        onClose: function () { cfgSt[1](null); }
+      }) : null);
   }
 
   /* ====================================================== System settings */
@@ -912,12 +1046,7 @@
     'admin/ai/features': AiFeatures,
     'admin/ai/limits': AiLimits,
 
-    'admin/integrations/email': integrationsScreen('Email', 'Email integration', 'Outbound provider and sender identity for notifications.'),
-    'admin/integrations/calendar': integrationsScreen('Calendar', 'Calendar integration', 'Push leave, holidays and interviews into company calendars.'),
-    'admin/integrations/sso': integrationsScreen('Authentication', 'Authentication & SSO', 'SAML or OIDC single sign-on with domain enforcement.'),
-    'admin/integrations/third-party': integrationsScreen('Third-Party', 'Third-party integrations', 'Accounting, biometric devices, chat and job boards.'),
-    'admin/integrations/api': integrationsScreen('API', 'API configuration', 'Keys, scopes and rate limits.'),
-    'admin/integrations/webhooks': integrationsScreen('Webhooks', 'Webhooks', 'Subscribe external systems to the business events in PRD 5.1.'),
+    'admin/integrations': Integrations,
 
     'admin/settings/general': settingsScreen('General settings', 'Formats and defaults across the product.', [
       ['Date format', 'DD MMM YYYY'], ['Number format', 'Indian grouping'], ['Week starts on', 'Monday'],

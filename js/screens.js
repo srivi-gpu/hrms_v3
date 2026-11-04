@@ -29,7 +29,7 @@
     var alerts = [
       { tone: 'warning', title: s.invited + ' invitations unaccepted', body: 'Sent more than five days ago. Resend or revoke from User management.', to: 'admin/users/pending' },
       { tone: 'warning', title: (seed.setupSteps.length - done) + ' setup steps remaining', body: seed.setupSteps.filter(function (x) { return !x.done; }).map(function (x) { return x.label; }).join(', ') + '.', to: 'admin/org/settings' },
-      { tone: 'info', title: 'Single sign-on not configured', body: 'Everyone signs in with email and password only.', to: 'admin/integrations/sso' },
+      { tone: 'info', title: 'Single sign-on not configured', body: 'Everyone signs in with email and password only.', to: 'admin/settings/auth' },
       { tone: 'info', title: 'Seat usage at ' + seatPct + '%', body: sub.seatsUsed + ' of ' + sub.seats + ' seats used on the ' + sub.plan + ' plan.', to: 'admin/billing/seats' }
     ];
 
