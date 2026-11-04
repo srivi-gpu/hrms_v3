@@ -80,14 +80,12 @@
       { path: 'limits', label: 'Usage limits', section: '2.1', note: 'Caps per user, per module and per billing period.' }
     ]},
 
-    { path: 'integrations', label: 'Integrations', icon: 'plug', section: '2.1', tabs: [
-      { path: 'email', label: 'Email', section: '2.1', note: 'Outbound email provider and sender identity for notifications.' },
-      { path: 'calendar', label: 'Calendar', section: '2.1', note: 'Push leave, holidays and interviews into company calendars.' },
-      { path: 'sso', label: 'Authentication & SSO', section: '2.1', note: 'SAML or OIDC single sign-on, with domain enforcement.' },
-      { path: 'third-party', label: 'Third-party', section: '2.1', note: 'Accounting, biometric device, chat and job-board connections.' },
-      { path: 'api', label: 'API', section: '2.1', note: 'API keys, scopes and rate limits.' },
-      { path: 'webhooks', label: 'Webhooks', section: '2.1', note: 'Subscribe external systems to the business events in section 5.1.' }
-    ]},
+    /* No tabs: the module is one page, and the providers are grouped into sections on
+       it. Six tabs meant six clicks to learn what was connected, and nowhere that the
+       whole picture read at once. An item with no `tabs` resolves straight to its own
+       route and the tab row renders nothing. */
+    { path: 'integrations', label: 'Integrations', icon: 'plug', section: '2.1',
+      note: 'Connected providers, grouped by what they do.' },
 
     { path: 'settings', label: 'System settings', icon: 'gear', section: '2.1', tabs: [
       { path: 'general', label: 'General', section: '2.1', note: 'Date format, number format, week start and default language.' },

@@ -1221,15 +1221,70 @@
     };
   });
 
+  /* Integrations. Two providers for now: Microsoft Outlook for mail and calendar,
+     and Tracklivo for time and attendance.
+
+     `section` is what groups the cards on the Admin screen — the module used to split
+     these across six tabs, which meant six clicks to see what was connected and no
+     place where the whole picture read at once. Sections put them on one page.
+
+     `fields` drives the configuration form a card opens, so adding a provider later is
+     a data change rather than a screen change. */
   var INTEGRATIONS = [
-    { id: 'int-email', name: 'Email (SMTP)', category: 'Email', status: 'Connected', detail: 'notifications@nexoratech.com via Amazon SES' },
-    { id: 'int-cal', name: 'Google Workspace Calendar', category: 'Calendar', status: 'Connected', detail: 'Leave and holidays pushed to employee calendars' },
-    { id: 'int-sso', name: 'SAML single sign-on', category: 'Authentication', status: 'Not Configured', detail: 'Employees sign in with email and password' },
-    { id: 'int-slack', name: 'Slack', category: 'Third-Party', status: 'Connected', detail: 'Approval reminders to #hr-approvals' },
-    { id: 'int-bio', name: 'Biometric devices', category: 'Third-Party', status: 'Connected', detail: '3 devices across Hyderabad, Bengaluru and Pune' },
-    { id: 'int-tally', name: 'Accounting export', category: 'Third-Party', status: 'Not Configured', detail: 'Payroll journal export' },
-    { id: 'int-api', name: 'REST API', category: 'API', status: 'Connected', detail: '2 active keys · 5,000 requests/hour' },
-    { id: 'int-hooks', name: 'Webhooks', category: 'Webhooks', status: 'Connected', detail: '4 subscriptions on employee and leave events' }
+    {
+      id: 'int-outlook',
+      name: 'Microsoft Outlook',
+      provider: 'Microsoft 365',
+      section: 'Email & calendar',
+      status: 'Connected',
+      detail: 'notifications@nexoratech.com',
+      summary: 'Sends HRMS notifications from your Microsoft 365 tenant, and writes approved leave, '
+        + 'holidays and interview invitations to employee calendars.',
+      logo: { text: 'O', bg: '#eaf2fd', fg: '#0f6cbd' },
+      capabilities: ['Outbound notification email', 'Leave and holidays on calendars', 'Interview invitations'],
+      lastSync: '2026-11-04T05:40:00',
+      fields: [
+        { id: 'tenant', kind: 'text', label: 'Microsoft 365 tenant', value: 'nexoratech.onmicrosoft.com',
+          hint: 'The directory the HRMS authenticates against.' },
+        { id: 'sender', kind: 'text', label: 'Sender address', value: 'notifications@nexoratech.com',
+          hint: 'Every notification the HRMS sends comes from here.' },
+        { id: 'calendar', kind: 'select', label: 'Write leave to', value: 'employee',
+          options: [
+            { value: 'employee', label: 'The employee\u2019s own calendar' },
+            { value: 'shared', label: 'A shared HR calendar' },
+            { value: 'both', label: 'Both' }
+          ] },
+        { id: 'invites', kind: 'switch', label: 'Send interview invitations as calendar invites', value: true },
+        { id: 'busy', kind: 'switch', label: 'Mark approved leave as Out of office', value: true }
+      ]
+    },
+    {
+      id: 'int-tracklivo',
+      name: 'Tracklivo',
+      provider: 'Tracklivo',
+      section: 'Time & attendance',
+      status: 'Connected',
+      detail: '3 sites · synced every 15 minutes',
+      summary: 'Pulls punches and worked hours from Tracklivo into attendance, so regularisation '
+        + 'and payroll read the same numbers the floor does.',
+      logo: { text: 'T', bg: '#efeafd', fg: '#5733c1' },
+      capabilities: ['Punch and worked-hours sync', 'Shift rosters', 'Overtime hours into payroll'],
+      lastSync: '2026-11-04T05:30:00',
+      fields: [
+        { id: 'workspace', kind: 'text', label: 'Tracklivo workspace', value: 'nexoratech',
+          hint: 'The workspace these sites report into.' },
+        { id: 'key', kind: 'text', label: 'API key', value: 'tl_live_4f21\u2026c90a', secret: true,
+          hint: 'Rotated from Tracklivo. Only the last four characters are shown.' },
+        { id: 'every', kind: 'select', label: 'Sync every', value: '15',
+          options: [
+            { value: '15', label: '15 minutes' },
+            { value: '60', label: 'Hour' },
+            { value: 'day', label: 'Day, after midnight' }
+          ] },
+        { id: 'overtime', kind: 'switch', label: 'Send approved overtime to payroll', value: true },
+        { id: 'auto', kind: 'switch', label: 'Raise a regularisation when a punch is missing', value: false }
+      ]
+    }
   ];
 
   var INVOICES = [
