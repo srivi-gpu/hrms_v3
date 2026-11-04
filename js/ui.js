@@ -202,7 +202,7 @@
         items: masters.map(function (m) { return { value: m.path, label: m.label }; }),
         onChange: function (v) { go(masters.filter(function (m) { return m.path === v; })[0]); }
       })),
-      row(inGroup, 'pill', active, activeTab.group));
+      row(inGroup, 'underline', active, activeTab.group));
   }
 
   /* ---------- Toasts: app-level, so an action can report from anywhere ---------- */

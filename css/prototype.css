@@ -769,7 +769,13 @@
    row is, so the hierarchy reads top-down: the familiar control names the half you are
    in, and the pills below are the screens within it. */
 .mtabs { display: grid; gap: 10px; margin-bottom: 4px; }
-.mtabs > .vi-tabs--pill { padding-left: 2px; }
+
+/* Module tab rows read as the Organisation setup tabs do: the current tab in the brand colour
+   over a 3px bar, resting on a hairline. */
+.mtabs .vi-tab { height: 44px; padding: 0 16px; font-size: 15px; }
+.mtabs .vi-tab.is-selected { color: var(--text-brand); }
+.mtabs .vi-tab--underline.is-selected::after { height: 3px; background: var(--brand-solid); }
+
 /* Attendance | Leave: a fully rounded grey track with a white pill for the current half,
    its label in the brand colour. */
 .mtabs__switch { display: flex; }
