@@ -770,6 +770,12 @@
    in, and the pills below are the screens within it. */
 .mtabs { display: grid; gap: 10px; margin-bottom: 4px; }
 .mtabs > .vi-tabs--pill { padding-left: 2px; }
+/* Attendance | Leave: a fully rounded grey track with a white pill for the current half,
+   its label in the brand colour. */
+.mtabs__switch { display: flex; }
+.mtabs__switch .vi-seg { height: 48px; padding: 6px; gap: 4px; border-radius: 999px; background: var(--bg-subtle); }
+.mtabs__switch .vi-seg__item { padding: 0 24px; border-radius: 999px; font-size: 16px; font-weight: 500; color: var(--text-secondary); }
+.mtabs__switch .vi-seg__item.is-selected { background: var(--bg-surface); color: var(--text-brand); box-shadow: 0 1px 3px rgba(20, 16, 50, .12); }
 
 /* ======================================================= Performance standings
    Badges, the board and the reward catalogue. The plate colours are the badge
