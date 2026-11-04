@@ -778,9 +778,13 @@
 
 /* Attendance | Leave: a fully rounded grey track with a white pill for the current half,
    its label in the brand colour. */
-.mtabs__switch { display: flex; }
-.mtabs__switch .vi-seg { height: 48px; padding: 6px; gap: 4px; border-radius: 999px; background: var(--bg-subtle); }
-.mtabs__switch .vi-seg__item { padding: 0 24px; border-radius: 999px; font-size: 16px; font-weight: 500; color: var(--text-secondary); }
+.mtabs__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border-subtle); }
+.mtabs__tabs { flex: 1; min-width: 0; }
+.mtabs__tabs .vi-tabs--divider { box-shadow: none; }
+.mtabs__switch { display: flex; flex: none; padding-bottom: 6px; }
+@media (max-width: 720px) { .mtabs__row { flex-direction: column-reverse; align-items: stretch; } .mtabs__switch { padding: 6px 0 0; } }
+.mtabs__switch .vi-seg { height: 40px; padding: 4px; gap: 4px; border-radius: 999px; background: var(--bg-subtle); }
+.mtabs__switch .vi-seg__item { padding: 0 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--text-secondary); }
 .mtabs__switch .vi-seg__item.is-selected { background: var(--bg-surface); color: var(--text-brand); box-shadow: 0 1px 3px rgba(20, 16, 50, .12); }
 
 /* ======================================================= Performance standings
