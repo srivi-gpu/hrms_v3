@@ -196,7 +196,12 @@
     var currentMaster = item.tabs.filter(function (t) { return t.group === activeTab.group; })[0].path;
 
     return h('div', { className: 'mtabs' },
-      row(masters, 'underline', currentMaster, item.label),
+      /* The two halves read as a segmented switch, not as another row of tabs. */
+      h('div', { className: 'mtabs__switch' }, h(V.SegmentedControl, {
+        'aria-label': item.label, value: currentMaster,
+        items: masters.map(function (m) { return { value: m.path, label: m.label }; }),
+        onChange: function (v) { go(masters.filter(function (m) { return m.path === v; })[0]); }
+      })),
       row(inGroup, 'pill', active, activeTab.group));
   }
 
